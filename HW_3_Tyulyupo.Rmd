@@ -1,0 +1,49 @@
+---
+title: "HW_3"
+output: word_document
+---
+
+```{r setup, include=T}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(jsonlite)
+```
+
+**Загрузка данных из формата JSON**
+```{r}
+df <- fromJSON("spells.json", flatten = T)
+df <- as_data_frame(df[[2]])
+```
+
+**Сортировка заклинаний с группировкой по типу**
+```{r}
+df <- df %>% 
+  group_by(type) %>% 
+  arrange(incantation, .by_group = T)
+```
+
+**Таблица с обобщающей информацией по типам заклинаний**
+```{r}
+sp_stat <- df %>% 
+  group_by(type) %>% 
+  summarise(n_spells = n(),
+            first_spell = first(incantation),
+            last_spell = last(incantation),
+            shortest_spell = min(nchar(incantation)),
+            longest_spell = max(nchar(incantation)),
+            avg_spell = mean(nchar(incantation)),
+            compound_spell = sum(grepl(" ", incantation)))
+```
+
+**Удаление и присоединение новых столбцов**
+```{r}
+sp_stat <- sp_stat %>% 
+  select(-first_spell, -last_spell)
+  
+df %>% 
+  group_by(type) %>% 
+  summarise(longest_spell = incantation[which.max(nchar(incantation))],
+            shortest_spell = incantation[which.min(nchar(incantation))]) %>% 
+  cbind(sp_stat)
+```
+

@@ -1,0 +1,99 @@
+---
+title: "HW_4_Tyulyupo"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+library(dbplyr)
+```
+Создание поделючения
+```{r}
+con <- DBI::dbConnect(RPostgreSQL::PostgreSQL(), 
+  user = "students",
+  password = "pmsar2017",
+  dbname = "pmsar",
+  host = "18.195.181.180",
+  port = 5432
+)
+```
+
+Загрузка интересующей таблицы в окружение
+```{r}
+df <- tbl(con, "got_chars")
+df_loc <- collect(tbl(con, "got_chars"))
+# Не был уверен, как это работает. Судя по размеру файлов, действительно,
+# df_loc - файл в локальном окружении, а df содержит только сведения о подключении.
+object.size(df_loc)
+object.size(df)
+```
+Задачка с созданием переменной house2
+```{r}
+# Здесь я создаю запрос в базу данных с использованием синтаксиса диплайар. Считаю частотность каждого дома и сортирую результаты в убывающем порядке. В результате должна получиться табличка с двумя переменными - названия дома и частота.
+n_houses <- df %>% 
+  count(house) %>% 
+  arrange(desc(n))
+# Но фактически, это пока только запись SQL запроса:
+show_query(n_houses)
+
+# При помощи функции collect() запрашиваю результат вычислений в окружение.
+n_houses <- collect(n_houses)
+n_houses
+
+# Теперь обнаружилось, что наблюдения с пустой строчкой распознаются как один из домов. Преобразую эти значения в NA.
+n_houses <- n_houses %>% 
+  mutate(house = na_if(house, ""))
+
+# Дальше работаю только с локальными данными. Если название дома в большой таблице встречается в колонке house в первых десяти строчках таблички с частотами, оставляю название дома.
+df_loc <- df_loc %>%
+  mutate(house2 = ifelse(house %in% n_houses$house[1:10], 
+                         house, "other"))
+df_loc %>% 
+  count(house2)
+  
+```
+Создание и проверка функции кастомной статистики
+```{r}
+
+stats <- function(x) {
+  tmp <- vector(length = 5)
+  tmp[c(1,2,3)] <-  round(summary(x)[c(1,4,6)], 2)
+  tmp[4] <- sum(is.na(x))
+  tmp[5] <- length(x)
+  names(tmp) <- c("min", "mean", "max", "n_NA", "length")
+  return(tmp)
+}
+tmp <- sample(100,10)
+tmp[5] <- NA
+stats(tmp)
+```
+
+Применение кастомной функции к сгруппированной переменной age.
+```{r}
+age_stats <- df_loc %>% 
+  group_by(house2) %>% 
+  do(data.frame(value = stats(.$age)))
+age_stats
+
+```
+Получилось плохо. Никак не удается создать адекватный столбец с названием статистики. Конечно, можно сделать при помощи rep(), но это некрасиво. По хорошему, следовало бы переписать функцию так, чтобы на выходе получался дата фрейм - понятно, в каком направлении работать. Но скучно с этим возиться. В принципе, не стал бы использовать здесь кастомную функцию и прописал все нужные статистики в summarise:
+```{r}
+df_loc %>% 
+  group_by(house2) %>% 
+  summarise(min_age = min(age, na.rm = T),
+            mean_age = mean(age, na.rm = T),
+            max_age = max(age, na.rm = T),
+            sum_na = sum(is.na(age)),
+            n = n()
+            )
+# Или, если нужно посчитать что-то нетривиальное несколько раз и не хочется это копипастить в summarise, можно доставать результаты функции по-отдельности:
+  df_loc %>% 
+  group_by(house2) %>% 
+  summarise(min = stats(age)[1],
+            max = stats(age)[3])
+```
+
+

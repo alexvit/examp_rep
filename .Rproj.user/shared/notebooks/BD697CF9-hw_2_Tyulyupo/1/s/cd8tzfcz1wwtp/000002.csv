@@ -1,0 +1,10 @@
+"0","# Объединяю основную и вспомогательную таблицы, отбираю нужные переменные. Переименовываю переменную spouse, поскольку у ключа сохраняется то имя, которое было у нее в основном датасете.
+got_spouses <- got_chars %>% 
+  filter(!is.na(spouse)) %>% 
+  left_join(assist, by = c(""spouse"" = ""spouse_name"")) %>% 
+  select(""name"", ""title"", ""male"", ""age"", ""spouse"", ""spouse_title"", ""spouse_age"") %>% 
+  rename(spouse_name = spouse)
+"
+"2","Error in left_join(., assist, by = c(spouse = ""spouse_name"")) : 
+  could not find function ""left_join""
+"

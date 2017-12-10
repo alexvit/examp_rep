@@ -1,0 +1,7 @@
+"0","con <- DBI::dbConnect(RPostgreSQL::PostgreSQL(), "
+"0","  user = ""students"","
+"0","  password = ""pmsar2017"","
+"0","  dbname = ""pmsar"","
+"0","  host = ""18.195.181.180"","
+"0","  port = 5432"
+"0",")"

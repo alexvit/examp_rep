@@ -1,0 +1,35 @@
+---
+title: "Untitled"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pcks <- c("data.table", "devtools", "ggplot", "plotly")
+install.packages(pcks)
+library(data.table)
+library(devtools)
+library(ggplot2)
+library(plotly)
+got_chars_full <- fread('character-predictions_pose.csv')
+got_chars <- got_chars_full[, .SD,  .SDcols = c("name", "title", "male", 
+                                           "culture", "dateOfBirth", 
+                                           "DateoFdeath",
+                                           "house", "spouse", "age")]
+tg_houses <- c("Night's Watch", "House Frey", "House Stark", "House Targaryen", "House Lannister", "House Greyjoy")
+got_houses <- 
+  list(
+    "n_watch" = got_chars[house == "Night's Watch"],
+    "h_frey" = got_chars[house == "House Frey"],
+    "h_stark" = got_chars[house == "House Stark"],
+    "h_targaryen" = got_chars[house == "House Targaryen"],
+    "h_lannister" = got_chars[house == "House Lannister"],
+    "h_greyjoy" = got_chars[house == "House Greyjoy"],
+    "other" = got_chars[!(house %in% tg_houses)])
+str(got_houses)
+
+```
+

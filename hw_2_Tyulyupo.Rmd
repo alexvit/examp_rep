@@ -1,0 +1,71 @@
+---
+title: "HW_2"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+library(stringr)
+got_chars_full <- read_csv("character-predictions_pose.csv")
+```
+
+**Отбор релевантных переменных в таблицу got_chars**
+```{r}
+got_chars <- got_chars_full %>% 
+  select("name", "title", "male", "culture", "dateOfBirth", "DateoFdeath", "house", "spouse", "age")
+rm(got_chars_full)
+```
+
+**Переименование значений переменной.**
+Насколько я понял, мы создаем список для индексирования. Не стал этого делать, поскольку сам этим приемом обычно не пользуюсь.
+```{r}
+got_houses <-  got_chars %>% 
+  filter(house %in% c("Night's Watch", "House Frey", "House Stark", "House Targaryen", "House Lannister", "House Greyjoy")) %>% 
+  select(name, house) %>% 
+  mutate(house = 
+           str_replace(house, ".* ", paste0(str_extract(house, "^."), "_")) %>%
+           tolower())
+```
+*Типичный пример, когда после того, как заморочился с регулярными выражениями, понимаешь, что проще было напечатать все, что нужно)))*
+
+**Создание таблицы с информацией по супругам**
+```{r}
+# Создаю вспомогательную таблицу. На всякий случай, предварительно фильтрую пропущенные наблюдения. Наверное, можно было и с ними, но не хотелось проверять.
+assist <- got_chars %>% 
+  filter(!is.na(spouse)) %>% 
+  mutate(spouse_name = name,
+         spouse_title = title,
+         spouse_age = age) %>% 
+  select("spouse_name", "spouse_title", "spouse_age")
+
+# Объединяю основную и вспомогательную таблицы, отбираю нужные переменные. Переименовываю переменную spouse, поскольку у ключа сохраняется то имя, которое было у нее в основном датасете.
+got_spouses <- got_chars %>% 
+  filter(!is.na(spouse)) %>% 
+  left_join(assist, by = c("spouse" = "spouse_name")) %>% 
+  select("name", "title", "male", "age", "spouse", "spouse_title", "spouse_age") %>% 
+  rename(spouse_name = spouse)
+```
+
+**Удаление переменной**
+```{r}
+
+```
+
+**Выбор нужных переменных и изменение их расположения.**
+```{r}
+got_spouses <-got_spouses %>% 
+  select( "name", "spouse_name", "title",
+          "spouse_title", "age", "spouse_age") %>% 
+  mutate(age_diff = abs(age-spouse_age))
+got_spouses %>% 
+  filter(name == "Walder Frey" | spouse_name == "Walder Frey")
+```
+
+#Вариант 2 - разбор домашнего задания. Попробую поработать с дата тейблом.
+```{r}
+```
+
+

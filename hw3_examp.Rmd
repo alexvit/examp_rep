@@ -1,0 +1,103 @@
+--- 
+title: "homework_3" 
+author: "Ph.A.Upravitelev" 
+date: '`r Sys.Date()`' 
+output: html_document 
+---
+
+## Импорт данных заклинаний
+
+Импортируйте файл `spells.csv`. Попробуйте функцию `read.table()` и функцию `fread()` из пакета `data.table`. Почитайте справку по функциям, обратите внимание на аргументы `sep`, `header`, `nrows`
+
+Для тех, кто хочет посложнее. С помощью пакета `jsonlite` импортируйте файл `spells.json`. Изучите справку по пакету, и выберите соответствующую функцию. 
+
+В результате  импорта вас должна получится таблица на 91 строку и 3 колонки.
+
+```{r json}
+library(jsonlite)
+spells <- fromJSON('./data/spells.json')
+spells <- spells$spells
+setDT(spells)
+```
+
+
+```{r spells_save, echo = FALSE, eval = FALSE}
+fwrite(spells, file = './data/spells.csv', sep = '^')
+```
+
+```{r spells_read, echo = FALSE, eval = FALSE}
+spells <- fread('./data/spells.csv', sep = '^')
+```
+
+
+## сортировка массива data.table
+
+Изучите справку по функциям `data.table::setkey()` и функции `order()`. Отсортируйте таблицу заклинаний по названиям заклинаний в алфавитном порядке по возростанию. В каждом типе заклинаний сортировка должна быть собственная (а не единая на весь датасет).
+
+
+## Статистики по типам заклинаний
+
+Создайте таблицу `spells_stats`, в которой по каждому типу заклинаний (`type`) будет следующая информация:
+
+ - количество заклинаний типа
+ - первое заклинание типа (в файле `hw2.Rmd` и на занятиях я показывал конструкцию .SD, она может помочь в этом задании. либо используйте свое решение)
+ - последнее заклинание типа (аналогично)
+ - длина самого короткого заклинания (используйте функцию `nchar()`)
+ - длина самого длинного заклинания (аналогично)
+ - средняя длина заклинания типа (округлите до 2 знака после запятой, `round()`)
+ - количество многословных заклинаний (вам может помочь функция `grepl()` или `grep()`)
+ 
+```{r spells_stats1}
+ spells_stats <- 
+  spells[, list(n_spells = .N,
+                spell_first = incantation[1],
+                spell_last = incantation[.N],
+                spell_min = min(nchar(incantation)),
+                spell_max = max(nchar(incantation)),
+                spell_mn = round(mean(nchar(incantation)), 2),
+                spell_m = sum(grepl(' ', incantation))),
+         by = type]
+```
+
+Решение с помощью создания отдельных колонок длины заклинания и является ли заклинание многословным.
+```{r spells_stats2}
+spells[, spell_length := nchar(incantation)]
+spells[grepl(' ', incantation), spell_multi := 1]
+
+ spells_stats <- 
+  spells[, list(n_spells = .N,
+                spell_first = incantation[1],
+                spell_last = incantation[.N],
+                spell_min = min(spell_length),
+                spell_max = max(spell_length),
+                spell_mn = round(mean(spell_length), 2),
+                spell_m = sum(spell_multi, na.rm = TRUE)),
+         by = type]
+```
+
+ 
+Решить задание можно либо с помощью одной команды (проведя сразу все вычисления), либо с созданием отдельных колонок и последующей агрегацией, либо путем последовательного создания и слияния промежуточных переменных. В идеале, если вы будете уметь все варианты. Как минимум, выполните решение третьим путем, через промежуточные таблички.
+ 
+
+## merge
+
+В полученной таблице удалите столбцы `spell_first` и `spell_last`. Добавьте к таблице колонки  с самым коротким и самым длинным заклинаниями каждого типа.
+
+```{r spells_stats3}
+# spells_stats[, c('spell_first', 'spell_last') := NULL]
+spells_stats[, spell_first := NULL]
+spells_stats[, spell_last := NULL]
+
+spells_stats <- 
+  merge(spells_stats,
+        spells[, list(spell_short = incantation[nchar(incantation) == min(nchar(incantation))],
+                      spell_long = incantation[nchar(incantation) == max(nchar(incantation))]),
+               by = type],
+      by = 'type')
+
+```
+
+
+ 
+
+

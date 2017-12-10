@@ -1,0 +1,5 @@
+fromJSON("tst_json.json")
+library(httr)
+url <- "http://api.wunderground.com/api/028f89195b31e5b5/conditions/q/RU/Tomsk.json"
+weather_json <- GET(url = url, timeout(10)) %>% content()
+weather_json[[2]]$temperature_string

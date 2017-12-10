@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1512810538869.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "148932362",
+    "id" : "5A91A965",
+    "lastKnownWriteTime" : 1512817817,
+    "last_content_update" : 1512817817114,
+    "path" : "D:/programming/examp_rep/tst_json.json",
+    "project_path" : "tst_json.json",
+    "properties" : {
+        "cursorPosition" : "0,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "json"
+}

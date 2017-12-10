@@ -1,0 +1,21 @@
+[
+{
+  "name":"Thor", 
+  "parents": {
+    "father":"Odin", 
+    "mother":"Jord"
+  },
+  "weapon": "Mjölnir"
+},
+  {
+  "name":"Thor", 
+  "parents": {
+    "father":"Odin", 
+    "mother":"Jord"
+  }
+},
+{
+  
+  "weapon": "Mjölnir"
+}
+]
